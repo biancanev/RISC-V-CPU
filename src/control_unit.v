@@ -13,6 +13,7 @@ module pipelined_control_unit(
     output reg reg_write,
     output reg mem_to_reg,
     output reg mem_write,
+    output reg mem_read,
     output reg branch,
     output reg jump,
     output reg pc_write
@@ -23,7 +24,7 @@ module pipelined_control_unit(
     localparam S_TYPE = 7'b0100011;
     localparam B_TYPE = 7'b1100011;
     localparam J_TYPE_JAL = 7'b1101111;
-    localparam J_TYPE_JALR = 7'b1100111;
+    localparam I_TYPE_JALR = 7'b1100111;
 
     reg [1:0] alu_op_temp;
     reg alu_src_temp;

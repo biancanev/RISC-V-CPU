@@ -64,8 +64,8 @@ module risc_v_pipeline_tb;
             data_read = 32'h00000000;
     end
     
-    // Function to decode instruction into assembly
-    function [128*8-1:0] decode_instruction;
+    // Instruction decoder task - no return value, just display
+    task display_instruction;
         input [31:0] instr;
         
         reg [6:0] opcode;
@@ -77,8 +77,6 @@ module risc_v_pipeline_tb;
         reg [12:0] imm_b;
         reg [31:0] imm_u;
         reg [20:0] imm_j;
-        
-        reg [128*8-1:0] asm_str;
         
         begin
             opcode = instr[6:0];
@@ -97,84 +95,82 @@ module risc_v_pipeline_tb;
             case (opcode)
                 7'b0110011: begin // R-type
                     case ({funct7[5], funct3})
-                        4'b0000: asm_str = $display("add x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b1000: asm_str = $display("sub x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0001: asm_str = $display("sll x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0010: asm_str = $display("slt x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0011: asm_str = $display("sltu x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0100: asm_str = $display("xor x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0101: asm_str = $display("srl x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b1101: asm_str = $display("sra x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0110: asm_str = $display("or x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        4'b0111: asm_str = $display("and x%0d, x%0d, x%0d", rd, rs1, rs2);
-                        default: asm_str = "unknown";
+                        4'b0000: $write("add x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b1000: $write("sub x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0001: $write("sll x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0010: $write("slt x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0011: $write("sltu x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0100: $write("xor x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0101: $write("srl x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b1101: $write("sra x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0110: $write("or x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        4'b0111: $write("and x%0d, x%0d, x%0d", rd, rs1, rs2);
+                        default: $write("unknown");
                     endcase
                 end
                 
                 7'b0010011: begin // I-type ALU
                     case (funct3)
-                        3'b000: asm_str = $display("addi x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
-                        3'b010: asm_str = $display("slti x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
-                        3'b011: asm_str = $display("sltiu x%0d, x%0d, %0d", rd, rs1, imm_i);
-                        3'b100: asm_str = $display("xori x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
-                        3'b110: asm_str = $display("ori x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
-                        3'b111: asm_str = $display("andi x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
-                        3'b001: asm_str = $display("slli x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
+                        3'b000: $write("addi x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                        3'b010: $write("slti x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                        3'b011: $write("sltiu x%0d, x%0d, %0d", rd, rs1, imm_i);
+                        3'b100: $write("xori x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                        3'b110: $write("ori x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                        3'b111: $write("andi x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                        3'b001: $write("slli x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
                         3'b101: begin
                             if (funct7[5])
-                                asm_str = $display("srai x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
+                                $write("srai x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
                             else
-                                asm_str = $display("srli x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
+                                $write("srli x%0d, x%0d, %0d", rd, rs1, instr[24:20]);
                         end
-                        default: asm_str = "unknown";
+                        default: $write("unknown");
                     endcase
                 end
                 
                 7'b0000011: begin // I-type Load
                     case (funct3)
-                        3'b000: asm_str = $display("lb x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
-                        3'b001: asm_str = $display("lh x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
-                        3'b010: asm_str = $display("lw x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
-                        3'b100: asm_str = $display("lbu x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
-                        3'b101: asm_str = $display("lhu x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
-                        default: asm_str = "unknown";
+                        3'b000: $write("lb x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
+                        3'b001: $write("lh x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
+                        3'b010: $write("lw x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
+                        3'b100: $write("lbu x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
+                        3'b101: $write("lhu x%0d, %0d(x%0d)", rd, $signed(imm_i), rs1);
+                        default: $write("unknown");
                     endcase
                 end
                 
                 7'b0100011: begin // S-type
                     case (funct3)
-                        3'b000: asm_str = $display("sb x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
-                        3'b001: asm_str = $display("sh x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
-                        3'b010: asm_str = $display("sw x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
-                        default: asm_str = "unknown";
+                        3'b000: $write("sb x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
+                        3'b001: $write("sh x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
+                        3'b010: $write("sw x%0d, %0d(x%0d)", rs2, $signed(imm_s), rs1);
+                        default: $write("unknown");
                     endcase
                 end
                 
                 7'b1100011: begin // B-type
                     case (funct3)
-                        3'b000: asm_str = $display("beq x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        3'b001: asm_str = $display("bne x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        3'b100: asm_str = $display("blt x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        3'b101: asm_str = $display("bge x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        3'b110: asm_str = $display("bltu x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        3'b111: asm_str = $display("bgeu x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
-                        default: asm_str = "unknown";
+                        3'b000: $write("beq x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        3'b001: $write("bne x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        3'b100: $write("blt x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        3'b101: $write("bge x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        3'b110: $write("bltu x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        3'b111: $write("bgeu x%0d, x%0d, %0d", rs1, rs2, $signed(imm_b));
+                        default: $write("unknown");
                     endcase
                 end
                 
-                7'b0110111: asm_str = $display("lui x%0d, 0x%0h", rd, instr[31:12]);
-                7'b0010111: asm_str = $display("auipc x%0d, 0x%0h", rd, instr[31:12]);
-                7'b1101111: asm_str = $display("jal x%0d, %0d", rd, $signed(imm_j));
-                7'b1100111: asm_str = $display("jalr x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
+                7'b0110111: $write("lui x%0d, 0x%0h", rd, instr[31:12]);
+                7'b0010111: $write("auipc x%0d, 0x%0h", rd, instr[31:12]);
+                7'b1101111: $write("jal x%0d, %0d", rd, $signed(imm_j));
+                7'b1100111: $write("jalr x%0d, x%0d, %0d", rd, rs1, $signed(imm_i));
                 
-                default: asm_str = "unknown";
+                default: $write("unknown");
             endcase
-            
-            decode_instruction = asm_str;
         end
-    endfunction
+    endtask
     
-    // Function to get register name
+    // Function to get register name as a string (can still return a value)
     function [31:0] reg_name;
         input [4:0] reg_num;
         begin
@@ -270,7 +266,7 @@ module risc_v_pipeline_tb;
                 cpu.if_id_pc >= 4*10) begin
                 #10;
                 $display("EBREAK instruction detected - ending simulation");
-                break;
+                i = 100; // This effectively breaks out of the loop
             end
         end
         
@@ -299,47 +295,53 @@ module risc_v_pipeline_tb;
             
             // Display pipeline stages with instruction mnemonics
             $display("----- PIPELINE STATE -----");
-            $display("IF:  PC=0x%h, Instr=%h [%s]", 
-                    cpu.pc, cpu.if_instruction, 
-                    decode_instruction(cpu.if_instruction));
-                    
-            $display("ID:  PC=0x%h, Instr=%h [%s]", 
-                    cpu.if_id_pc, cpu.if_id_instruction, 
-                    decode_instruction(cpu.if_id_instruction));
-                    
+            
+            // IF stage
+            $write("IF:  PC=0x%h, Instr=%h [", cpu.pc, cpu.if_instruction);
+            display_instruction(cpu.if_instruction);
+            $display("]");
+            
+            // ID stage
+            $write("ID:  PC=0x%h, Instr=%h [", cpu.if_id_pc, cpu.if_id_instruction);
+            display_instruction(cpu.if_id_instruction);
+            $display("]");
+            
+            // EX stage
             $display("EX:  PC=0x%h, RS1=%h, RS2=%h, IMM=%h", 
                     cpu.id_ex_pc, cpu.id_ex_rs1_data, cpu.id_ex_rs2_data, 
                     cpu.id_ex_immediate);
-                    
             $display("     ALUOp=%b, ALUCtrl=%b, ALUSrc=%b", 
                     cpu.id_ex_alu_op, cpu.ex_alu_control, cpu.id_ex_alu_src);
-                    
             $display("     RegWrite=%b, RD=%d, Result=%h", 
                     cpu.id_ex_reg_write, cpu.id_ex_rd_addr, cpu.ex_alu_result);
-                    
+            
+            // MEM stage
             $display("MEM: PC=0x%h, ALUResult=%h, MemWrite=%b, MemRead=%b", 
                     cpu.ex_mem_pc_plus4 - 4, cpu.ex_mem_alu_result, 
                     cpu.ex_mem_mem_write, cpu.ex_mem_mem_read);
-                    
             $display("     Branch=%b, Zero=%b, BranchTaken=%b", 
                     cpu.ex_mem_branch, cpu.ex_mem_zero_flag, cpu.ex_mem_branch_taken);
-                    
+            
+            // WB stage
             $display("WB:  RegWrite=%b, RD=%d, Data=%h", 
                     cpu.mem_wb_reg_write, cpu.mem_wb_rd_addr, cpu.wb_write_data);
-                    
+            
             // Display forwarding information
             if (cpu.forward_a != 2'b00 || cpu.forward_b != 2'b00) begin
                 $display("----- FORWARDING -----");
-                if (cpu.forward_a != 2'b00)
-                    $display("RS1 Forwarding: %b - from %s to %s", 
-                            cpu.forward_a, 
-                            (cpu.forward_a == 2'b01) ? "WB" : "MEM", 
-                            reg_name(cpu.id_ex_rs1_addr));
-                if (cpu.forward_b != 2'b00)
-                    $display("RS2 Forwarding: %b - from %s to %s", 
-                            cpu.forward_b, 
-                            (cpu.forward_b == 2'b01) ? "WB" : "MEM", 
-                            reg_name(cpu.id_ex_rs2_addr));
+                if (cpu.forward_a != 2'b00) begin
+                    $write("RS1 Forwarding: %b - from %s to ", cpu.forward_a, 
+                            (cpu.forward_a == 2'b01) ? "WB" : "MEM");
+                    $write("%s", reg_name(cpu.id_ex_rs1_addr));
+                    $display("");
+                end
+                
+                if (cpu.forward_b != 2'b00) begin
+                    $write("RS2 Forwarding: %b - from %s to ", cpu.forward_b, 
+                            (cpu.forward_b == 2'b01) ? "WB" : "MEM");
+                    $write("%s", reg_name(cpu.id_ex_rs2_addr));
+                    $display("");
+                end
             end
             
             // Display hazard information
@@ -354,10 +356,9 @@ module risc_v_pipeline_tb;
             // Display register file updates
             if (cpu.mem_wb_reg_write && cpu.mem_wb_rd_addr != 0) begin
                 $display("----- REGISTER UPDATE -----");
-                $display("x%0d (%s) = 0x%h", 
-                        cpu.mem_wb_rd_addr, 
-                        reg_name(cpu.mem_wb_rd_addr), 
-                        cpu.wb_write_data);
+                $write("x%0d (", cpu.mem_wb_rd_addr);
+                $write("%s", reg_name(cpu.mem_wb_rd_addr));
+                $display(") = 0x%h", cpu.wb_write_data);
             end
             
             // Display memory updates

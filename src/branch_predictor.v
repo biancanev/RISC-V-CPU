@@ -7,8 +7,8 @@ module branch_predictor(
     output reg branch_prediction // Branch prediction (1: taken, 0: not taken)
 );
 
-    // For now we will use a simple static predictor that always predicts not taken
+    // For now we will use a simple static predictor
     always @(*) begin
-        branch_prediction = 1'b0;
+        branch_prediction = (branch_pc[2] == 1'b0) ? 1'b0 : 1'b1;
     end
 endmodule

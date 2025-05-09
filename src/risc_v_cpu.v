@@ -67,8 +67,8 @@ module risc_v_pipeline_cpu(
     wire ex_branch_taken;
 
     wire [1:0] forward_a, forward_b;
-    wire [31:0] ex_alu_input_a, ex_alu_input_b;
-    wire [31:0] ex_alu_input_b_mux_out;
+    reg [31:0] ex_alu_input_a, ex_alu_input_b;
+    reg [31:0] ex_alu_input_b_mux_out;
 
     reg [31:0] ex_mem_pc_plus4;
     reg [31:0] ex_mem_branch_target;
@@ -302,7 +302,9 @@ module risc_v_pipeline_cpu(
         endcase
     end
 
-    assign ex_alu_input_b = id_ex_alu_src ? id_ex_immediate : ex_alu_input_b_mux_out;
+    always @(*) begin
+        ex_alu_input_b = id_ex_alu_src ? id_ex_immediate : ex_alu_input_b_mux_out;
+    end
 
     alu alu_unit(
         .a(ex_alu_input_a),
